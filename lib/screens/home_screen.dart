@@ -4,6 +4,7 @@ import '../widgets/coin_item.dart';
 import '../widgets/section_header.dart';
 import '../widgets/stat_card.dart';
 import '../data/coin_provider.dart';
+import '../data/portfolio_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,28 +32,48 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+
+      /// 🔥 LISTEN to BOTH providers: coins + portfolio
       body: AnimatedBuilder(
-        animation: CoinProvider.instance,
+        animation: Listenable.merge([
+          CoinProvider.instance,
+          PortfolioProvider.instance,
+        ]),
         builder: (context, _) {
           final coins = CoinProvider.instance.coins;
           final isLoading = CoinProvider.instance.isLoading;
-          
-          if (isLoading && coins.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+
+          final totalValue = PortfolioProvider.instance.totalValue;
+          final profit = PortfolioProvider.instance.totalProfit;
+
+          double changePercent = 0;
+          if (totalValue > 0) {
+            final initialValue = totalValue - profit;
+            if (initialValue != 0) {
+              changePercent = (profit / initialValue) * 100;
+            }
           }
-          
+
+          if (isLoading && coins.isEmpty) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
           return RefreshIndicator(
             onRefresh: () => CoinProvider.instance.fetchCoins(),
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const PortfolioCard(
-                  totalValue: 12540.80,
-                  changePercent: 4.32,
+                /// 🔥 DYNAMIC PortfolioCard
+                PortfolioCard(
+                  totalValue: totalValue,
+                  changePercent: changePercent,
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
+                /// Stat Cards
                 const Row(
                   children: [
                     Expanded(
@@ -74,19 +95,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 const SectionHeader(
                   title: "Trending Coins",
                   actionLabel: "Live",
                 ),
-                
-                ...coins.map((coin) => CoinItem(
-                  coin: coin,
-                  showStar: true,
-                  onToggleStar: () => CoinProvider.instance.toggleStar(coin.id),
-                )),
+
+                /// Coins list
+                ...coins.map(
+                  (coin) => CoinItem(
+                    coin: coin,
+                    showStar: true,
+                    onToggleStar: () =>
+                        CoinProvider.instance.toggleStar(coin.id),
+                  ),
+                ),
               ],
             ),
           );
