@@ -1,6 +1,7 @@
 // lib/services/auth_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../data/portfolio_provider.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -65,9 +66,13 @@ class AuthService extends ChangeNotifier {
   }
   
   // Sign out
-  Future<void> signOut() async {
+ Future<void> signOut() async {
     print('Sign out called');
     await _auth.signOut();
+    
+    // Clear portfolio data on logout
+    PortfolioProvider.instance.clearPortfolio();
+    
     print('Sign out complete');
   }
 }

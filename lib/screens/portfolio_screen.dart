@@ -212,6 +212,36 @@ class PortfolioScreen extends StatelessWidget {
                             ),
                           ],
                         ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          color: Colors.red,
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Remove Holding'),
+                                content: Text('Remove $symbol from portfolio?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () {
+                                      PortfolioProvider.instance.removeHolding(symbol);
+                                      Navigator.pop(context);
+                                    },
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
+                                    child: const Text('Remove'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   );

@@ -35,7 +35,15 @@ class ThemeService extends ChangeNotifier {
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF1A1F26),
       elevation: 0,
+      foregroundColor: Colors.white,
     ),
     cardColor: const Color(0xFF1A1F26),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Colors.white),
+      bodyMedium: TextStyle(color: Colors.white70),
+    ),
+    iconTheme: const IconThemeData(
+      color: Colors.white70,
+    ),
   );
 }

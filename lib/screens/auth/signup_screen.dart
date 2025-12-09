@@ -75,6 +75,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Create Account"),
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(
@@ -203,6 +204,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             )
                           : const Text("Create Account"),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Already have an account? "),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("Sign In"),
+                      ),
+                    ],
                   ),
                 ],
               ),

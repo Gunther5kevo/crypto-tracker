@@ -11,6 +11,9 @@ class CoinProvider extends ChangeNotifier {
   List<Coin> _coins = [];
   bool _isLoading = false;
 
+  // Store starred coin IDs to preserve across refreshes
+  final Set<String> _starredIds = {};
+
   List<Coin> get coins => _coins;
   List<Coin> get watchlist => _coins.where((c) => c.starred).toList();
   bool get isLoading => _isLoading;
@@ -35,14 +38,17 @@ class CoinProvider extends ChangeNotifier {
               .map((e) => (e as num).toDouble())
               .toList();
           
+          final coinId = coin['id'];
+          
           return Coin(
-            id: coin['id'],
+            id: coinId,
             name: coin['name'],
             symbol: coin['symbol'].toUpperCase(),
             price: (coin['current_price'] as num).toDouble(),
             change: (coin['price_change_percentage_24h'] as num?)?.toDouble() ?? 0.0,
             spark: sparkList,
-            starred: false,
+            // Preserve starred state from previous data
+            starred: _starredIds.contains(coinId),
           );
         }).toList();
       }
@@ -57,7 +63,16 @@ class CoinProvider extends ChangeNotifier {
   void toggleStar(String id) {
     final index = _coins.indexWhere((c) => c.id == id);
     if (index != -1) {
-      _coins[index] = _coins[index].copyWith(starred: !_coins[index].starred);
+      final newStarredState = !_coins[index].starred;
+      _coins[index] = _coins[index].copyWith(starred: newStarredState);
+      
+      // Update the starred IDs set
+      if (newStarredState) {
+        _starredIds.add(id);
+      } else {
+        _starredIds.remove(id);
+      }
+      
       notifyListeners();
     }
   }

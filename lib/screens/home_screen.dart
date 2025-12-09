@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     CoinProvider.instance.fetchCoins();
+    PortfolioProvider.instance.loadPortfolio(); // Load user's portfolio
   }
 
   @override
