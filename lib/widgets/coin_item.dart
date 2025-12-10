@@ -75,14 +75,14 @@ class CoinItem extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "\${coin.price.toStringAsFixed(2)}",
+                        '\$${coin.price.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 13,
                           color: Theme.of(context)
                               .textTheme
                               .bodyMedium
                               ?.color
-                              ?.withValues(alpha: 0.6),
+                              ?.withOpacity(0.6),
                         ),
                       ),
                     ],

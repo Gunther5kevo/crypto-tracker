@@ -1,4 +1,6 @@
+// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../widgets/portfolio_card.dart';
 import '../widgets/coin_item.dart';
 import '../widgets/section_header.dart';
@@ -14,11 +16,47 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    // Load watchlist first, then fetch coins
+    await CoinProvider.instance.loadWatchlist();
     CoinProvider.instance.fetchCoins();
-    PortfolioProvider.instance.loadPortfolio(); // Load user's portfolio
+    PortfolioProvider.instance.loadPortfolio();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    // Cancel previous timer
+    _debounce?.cancel();
+    
+    setState(() {
+      _searchQuery = query;
+    });
+
+    if (query.trim().isEmpty) {
+      CoinProvider.instance.clearSearch();
+      return;
+    }
+
+    // Debounce the search to avoid too many API calls
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      CoinProvider.instance.searchCoins(query);
+    });
   }
 
   @override
@@ -33,16 +71,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-
-      /// 🔥 LISTEN to BOTH providers: coins + portfolio
       body: AnimatedBuilder(
         animation: Listenable.merge([
           CoinProvider.instance,
           PortfolioProvider.instance,
         ]),
         builder: (context, _) {
-          final coins = CoinProvider.instance.coins;
           final isLoading = CoinProvider.instance.isLoading;
+          final isSearching = CoinProvider.instance.isSearching;
+          
+          // Use search results if searching, otherwise show main coins
+          final coins = _searchQuery.isEmpty
+              ? CoinProvider.instance.coins
+              : CoinProvider.instance.searchResults;
 
           final totalValue = PortfolioProvider.instance.totalValue;
           final profit = PortfolioProvider.instance.totalProfit;
@@ -55,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           }
 
-          if (isLoading && coins.isEmpty) {
+          if (isLoading && CoinProvider.instance.coins.isEmpty) {
             return const Center(
               child: CircularProgressIndicator(),
             );
@@ -66,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                /// 🔥 DYNAMIC PortfolioCard
+                // Portfolio Card
                 PortfolioCard(
                   totalValue: totalValue,
                   changePercent: changePercent,
@@ -74,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 20),
 
-                /// Stat Cards
+                // Stat Cards
                 const Row(
                   children: [
                     Expanded(
@@ -99,20 +140,93 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 24),
 
-                const SectionHeader(
-                  title: "Trending Coins",
-                  actionLabel: "Live",
+                // Search Bar
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: "Search any coin...",
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _searchController.clear();
+                                _searchQuery = '';
+                              });
+                              CoinProvider.instance.clearSearch();
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF1A1F26)
+                        : Colors.grey.shade100,
+                  ),
+                  onChanged: _onSearchChanged,
                 ),
 
-                /// Coins list
-                ...coins.map(
-                  (coin) => CoinItem(
-                    coin: coin,
-                    showStar: true,
-                    onToggleStar: () =>
-                        CoinProvider.instance.toggleStar(coin.id),
-                  ),
+                const SizedBox(height: 16),
+
+                // Section Header
+                SectionHeader(
+                  title: _searchQuery.isEmpty
+                      ? "Trending Coins"
+                      : "Search Results (${coins.length})",
+                  actionLabel: _searchQuery.isEmpty ? "Live" : null,
                 ),
+
+                // Loading indicator for search
+                if (isSearching)
+                  const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                // No results found
+                else if (coins.isEmpty && _searchQuery.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(48),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "No coins found",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Try a different search term",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                // Coins List
+                else
+                  ...coins.map(
+                    (coin) => CoinItem(
+                      coin: coin,
+                      showStar: true,
+                      onToggleStar: () =>
+                          CoinProvider.instance.toggleStar(coin.id),
+                    ),
+                  ),
               ],
             ),
           );

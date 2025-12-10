@@ -1,7 +1,9 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'services/theme_service.dart';
 import 'services/auth_service.dart';
 import 'screens/auth/login_screen.dart';
@@ -9,7 +11,19 @@ import 'screens/main_navigation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
   await Firebase.initializeApp();
+  
+  // Load environment variables
+  try {
+    await dotenv.load(fileName: ".env");
+    debugPrint('✅ Environment variables loaded successfully');
+  } catch (e) {
+    debugPrint('⚠️ Warning: Could not load .env file: $e');
+    debugPrint('💡 Create a .env file in your project root with OPENAI_API_KEY=your_key');
+  }
+  
   runApp(const CryptoApp());
 }
 

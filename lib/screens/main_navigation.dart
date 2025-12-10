@@ -1,8 +1,9 @@
-// lib/screens/main_navigation.dart
+// lib/screens/main_navigation.dart - UPDATE to add AI Analyst tab
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'watchlist_screen.dart';
 import 'portfolio_screen.dart';
+import 'watchlist_screen.dart';
+import 'ai_analyst_screen.dart'; 
 import 'settings_screen.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -18,6 +19,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _screens = const [
     HomeScreen(),
     PortfolioScreen(),
+    AIAnalystScreen(), // ADD THIS
     WatchlistScreen(),
     SettingsScreen(),
   ];
@@ -45,6 +47,11 @@ class _MainNavigationState extends State<MainNavigation> {
             icon: Icon(Icons.account_balance_wallet_outlined),
             selectedIcon: Icon(Icons.account_balance_wallet),
             label: 'Portfolio',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.psychology_outlined), // AI ICON
+            selectedIcon: Icon(Icons.psychology),
+            label: 'AI Analyst',
           ),
           NavigationDestination(
             icon: Icon(Icons.visibility_outlined),
