@@ -217,7 +217,7 @@ IMPORTANT: Respond ONLY with the JSON object. No markdown, no code blocks, no ex
       } else {
         _handleHttpError(response);
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('═══════════════════════════════════════');
       debugPrint('❌ EXCEPTION CAUGHT');
       debugPrint('Error: $e');
@@ -269,7 +269,7 @@ Guidelines:
 - Be honest if you don't have enough information
 - Never give direct financial advice, always say "do your own research"'''
       },
-      ..._conversationHistory.map((msg) => msg.toJson()).toList(),
+      ..._conversationHistory.map((msg) => msg.toJson()),
     ];
 
     try {

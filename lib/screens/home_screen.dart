@@ -26,12 +26,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _initializeData();
   }
 
-  Future<void> _initializeData() async {
-    // Load watchlist first, then fetch coins
-    await CoinProvider.instance.loadWatchlist();
-    CoinProvider.instance.fetchCoins();
-    PortfolioProvider.instance.loadPortfolio();
-  }
+  // In _initializeData()
+Future<void> _initializeData() async {
+  await CoinProvider.instance.loadWatchlist();
+  await PortfolioProvider.instance.loadPortfolio();
+  
+  // Listen to price updates
+  CoinProvider.instance.addListener(() {
+    PortfolioProvider.instance.updatePrices();
+  });
+  
+  CoinProvider.instance.fetchCoins();
+}
 
   @override
   void dispose() {
